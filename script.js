@@ -339,20 +339,7 @@ function setActiveScene(sceneIndex) {
   renderScene();
 }
 
-const observer = new IntersectionObserver(
-  (entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        if (Date.now() - state.manualSceneAt < 900) return;
-        setActiveScene(Number(entry.target.dataset.scene));
-      }
-    });
-  },
-  { threshold: 0.6 }
-);
-
 chapters.forEach((chapter) => {
-  observer.observe(chapter);
   chapter.addEventListener("click", () => {
     setActiveScene(Number(chapter.dataset.scene));
     chapter.scrollIntoView({ behavior: "smooth", block: "center" });
