@@ -218,6 +218,12 @@ canvas {
   border: 1px solid rgba(255, 255, 255, 0.06);
   color: var(--muted);
   transition: transform 0.3s ease, border 0.3s ease, color 0.3s ease;
+  cursor: pointer;
+}
+
+.chapter:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-2px);
 }
 
 .chapter.active {

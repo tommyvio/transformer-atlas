@@ -265,24 +265,34 @@ function loadFromURL() {
   if (prompt) promptInput.value = prompt;
 }
 
+const chapters = Array.from(document.querySelectorAll(".chapter"));
+
+function setActiveScene(sceneIndex) {
+  state.activeScene = sceneIndex;
+  updateSceneInfo(sceneIndex);
+  chapters.forEach((el) => {
+    el.classList.toggle("active", Number(el.dataset.scene) === sceneIndex);
+  });
+  renderScene();
+}
+
 const observer = new IntersectionObserver(
   (entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
-        const sceneIndex = Number(entry.target.dataset.scene);
-        state.activeScene = sceneIndex;
-        updateSceneInfo(sceneIndex);
-        document.querySelectorAll(".chapter").forEach((el) => {
-          el.classList.toggle("active", el === entry.target);
-        });
-        renderScene();
+        setActiveScene(Number(entry.target.dataset.scene));
       }
     });
   },
   { threshold: 0.6 }
 );
 
-document.querySelectorAll(".chapter").forEach((chapter) => observer.observe(chapter));
+chapters.forEach((chapter) => {
+  observer.observe(chapter);
+  chapter.addEventListener("click", () => {
+    setActiveScene(Number(chapter.dataset.scene));
+  });
+});
 
 runPrompt.addEventListener("click", updateTokens);
 randomPrompt.addEventListener("click", () => {
