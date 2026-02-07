@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Transformer Atlas</title>
+    <meta
+      name="description"
+      content="A visual, scroll-driven explainer of transformer models with interactive diagrams and intuition-first storytelling."
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="glow"></div>
+
+    <header class="hero">
+      <div class="nav">
+        <span class="badge">AI Explainer</span>
+        <button id="copyLink" class="ghost">Copy Link</button>
+      </div>
+      <h1>Transformer Atlas</h1>
+      <p class="lede">
+        A scroll-driven, visual tour of how transformers turn tokens into
+        meaning. Clear intuition, minimal math, maximum clarity.
+      </p>
+      <div class="hero-grid">
+        <div class="hero-card">
+          <label for="promptInput">Try a prompt</label>
+          <textarea id="promptInput" rows="3">
+I want a plan that feels smart, calm, and surprisingly simple.
+          </textarea>
+          <div class="hero-actions">
+            <button id="runPrompt" class="primary">Update Scene</button>
+            <button id="randomPrompt" class="ghost">Surprise Me</button>
+          </div>
+          <div class="tips">
+            Tip: shorter prompts reveal attention patterns more clearly.
+          </div>
+        </div>
+        <div class="hero-card metrics">
+          <div>
+            <span class="label">Tokens</span>
+            <strong id="tokenCount">—</strong>
+          </div>
+          <div>
+            <span class="label">Heads</span>
+            <strong id="headCount">4</strong>
+          </div>
+          <div>
+            <span class="label">Layers</span>
+            <strong>2</strong>
+          </div>
+          <div class="head-control">
+            <label for="headSelect">Attention Head</label>
+            <input id="headSelect" type="range" min="0" max="3" value="0" />
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="stage">
+        <div class="stage-card">
+          <div class="stage-header">
+            <div>
+              <span class="stage-label">Current Layer</span>
+              <h2 id="stageTitle">Tokenization</h2>
+            </div>
+            <div class="stage-pill" id="stageTag">Step 01</div>
+          </div>
+          <p id="stageBody">
+            Transformers begin by slicing text into tokens. Each token becomes a
+            discrete unit the model can reason about.
+          </p>
+          <canvas id="scene" width="640" height="420"></canvas>
+        </div>
+      </aside>
+
+      <section class="story">
+        <article class="chapter" data-scene="0">
+          <h3>Tokenization</h3>
+          <p>
+            The model cuts text into pieces: words, subwords, punctuation. The
+            sequence becomes a line of tokens that the rest of the network can
+            manipulate.
+          </p>
+        </article>
+        <article class="chapter" data-scene="1">
+          <h3>Embeddings</h3>
+          <p>
+            Each token is mapped to a dense vector. Nearby vectors represent
+            related meaning, giving the model a semantic canvas.
+          </p>
+        </article>
+        <article class="chapter" data-scene="2">
+          <h3>Self-Attention</h3>
+          <p>
+            Tokens look at other tokens and decide what matters most. Attention
+            weights are the model’s spotlight system.
+          </p>
+        </article>
+        <article class="chapter" data-scene="3">
+          <h3>Feed-Forward + Residual</h3>
+          <p>
+            A nonlinear mixing step refines each token. Residual connections
+            preserve the original signal and stabilize learning.
+          </p>
+        </article>
+        <article class="chapter" data-scene="4">
+          <h3>Prediction</h3>
+          <p>
+            The final vectors become probabilities for the next token. The model
+            samples a continuation based on those scores.
+          </p>
+        </article>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div>Built as a visual explainer, no backend required.</div>
+      <div>Scroll the story to animate the model.</div>
+    </footer>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="script.js"></script>
+  </body>
+</html>

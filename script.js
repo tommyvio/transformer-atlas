@@ -1,0 +1,307 @@
+const promptInput = document.getElementById("promptInput");
+const runPrompt = document.getElementById("runPrompt");
+const randomPrompt = document.getElementById("randomPrompt");
+const copyLink = document.getElementById("copyLink");
+const tokenCount = document.getElementById("tokenCount");
+const headSelect = document.getElementById("headSelect");
+const stageTitle = document.getElementById("stageTitle");
+const stageBody = document.getElementById("stageBody");
+const stageTag = document.getElementById("stageTag");
+const toast = document.getElementById("toast");
+const canvas = document.getElementById("scene");
+const ctx = canvas.getContext("2d");
+
+const scenes = [
+  {
+    title: "Tokenization",
+    tag: "Step 01",
+    body:
+      "Transformers begin by slicing text into tokens. Each token becomes a discrete unit the model can reason about.",
+  },
+  {
+    title: "Embeddings",
+    tag: "Step 02",
+    body:
+      "Every token maps to a dense vector. Nearby vectors represent related meaning and structure.",
+  },
+  {
+    title: "Self-Attention",
+    tag: "Step 03",
+    body:
+      "Tokens decide which other tokens matter. Attention weights are the model’s spotlight system.",
+  },
+  {
+    title: "Feed-Forward + Residual",
+    tag: "Step 04",
+    body:
+      "A nonlinear mixing step refines each token. Residual paths keep signal stable while adding depth.",
+  },
+  {
+    title: "Prediction",
+    tag: "Step 05",
+    body:
+      "The final vectors become probabilities over the vocabulary to choose the next token.",
+  },
+];
+
+const prompts = [
+  "I want a plan that feels smart, calm, and surprisingly simple.",
+  "We launch at dawn, but the forecast says the winds may shift.",
+  "Explain transformers in plain language without using math.",
+  "Design a product demo that feels cinematic and easy to follow.",
+];
+
+const state = {
+  tokens: [],
+  activeScene: 0,
+  head: 0,
+  seed: 0,
+};
+
+function hashString(str) {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i += 1) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+function rand(seed) {
+  let t = seed + 0x6d2b79f5;
+  t = Math.imul(t ^ (t >>> 15), t | 1);
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+
+function tokenize(text) {
+  return text
+    .trim()
+    .split(/(\s+|[.,!?])/)
+    .filter((token) => token.trim().length)
+    .slice(0, 12);
+}
+
+function showToast(message) {
+  toast.textContent = message;
+  toast.classList.remove("hidden");
+  setTimeout(() => toast.classList.add("hidden"), 1600);
+}
+
+function updateSceneInfo(index) {
+  const scene = scenes[index];
+  stageTitle.textContent = scene.title;
+  stageBody.textContent = scene.body;
+  stageTag.textContent = scene.tag;
+}
+
+function resizeCanvas() {
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = Math.floor(rect.width * dpr);
+  canvas.height = Math.floor(rect.height * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+function drawTokens() {
+  const tokens = state.tokens;
+  const padding = 18;
+  const gap = 10;
+  let x = padding;
+  let y = padding + 10;
+  ctx.font = "14px Manrope";
+
+  tokens.forEach((token) => {
+    const width = ctx.measureText(token).width + 20;
+    ctx.fillStyle = "rgba(122, 240, 255, 0.12)";
+    ctx.strokeStyle = "rgba(122, 240, 255, 0.4)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(x, y, width, 28, 14);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = "#eef1ff";
+    ctx.fillText(token, x + 10, y + 19);
+    x += width + gap;
+    if (x + width > canvas.width - padding) {
+      x = padding;
+      y += 40;
+    }
+  });
+}
+
+function drawEmbeddings() {
+  const tokens = state.tokens;
+  const padding = 24;
+  const barWidth = Math.max(18, (canvas.width - padding * 2) / tokens.length - 10);
+  const maxHeight = canvas.height - 80;
+
+  tokens.forEach((token, i) => {
+    const seed = state.seed + i * 31 + state.head * 7;
+    const height = 60 + rand(seed) * maxHeight * 0.6;
+    const x = padding + i * (barWidth + 10);
+    const y = canvas.height - padding - height;
+
+    ctx.fillStyle = "rgba(255, 139, 209, 0.6)";
+    ctx.fillRect(x, y, barWidth, height);
+    ctx.fillStyle = "#9aa6c6";
+    ctx.font = "12px Manrope";
+    ctx.fillText(token, x, canvas.height - padding + 12);
+  });
+}
+
+function drawAttention() {
+  const tokens = state.tokens;
+  const padding = 40;
+  const yTop = padding + 10;
+  const yBottom = canvas.height - padding;
+  const gap = (canvas.width - padding * 2) / Math.max(tokens.length - 1, 1);
+
+  tokens.forEach((token, i) => {
+    const x = padding + i * gap;
+    ctx.fillStyle = "#eef1ff";
+    ctx.beginPath();
+    ctx.arc(x, yTop, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#9aa6c6";
+    ctx.font = "12px Manrope";
+    ctx.fillText(token, x - 10, yTop - 16);
+
+    ctx.fillStyle = "#7af0ff";
+    ctx.beginPath();
+    ctx.arc(x, yBottom, 8, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  tokens.forEach((_, i) => {
+    tokens.forEach((__, j) => {
+      const seed = state.seed + i * 23 + j * 11 + state.head * 101;
+      const weight = rand(seed);
+      if (weight < 0.35) return;
+      const x1 = padding + i * gap;
+      const x2 = padding + j * gap;
+      ctx.strokeStyle = `rgba(122, 240, 255, ${0.1 + weight * 0.5})`;
+      ctx.lineWidth = 1 + weight * 1.4;
+      ctx.beginPath();
+      ctx.moveTo(x1, yTop + 12);
+      ctx.lineTo(x2, yBottom - 12);
+      ctx.stroke();
+    });
+  });
+}
+
+function drawResidual() {
+  const tokens = state.tokens;
+  const padding = 24;
+  const laneHeight = 36;
+
+  tokens.forEach((token, i) => {
+    const y = padding + i * (laneHeight + 12);
+    const baseWidth = canvas.width - padding * 2;
+    const seed = state.seed + i * 17 + state.head * 29;
+    const fill = baseWidth * (0.4 + rand(seed) * 0.6);
+
+    ctx.fillStyle = "rgba(255, 255, 255, 0.06)";
+    ctx.fillRect(padding, y, baseWidth, laneHeight);
+    ctx.fillStyle = "rgba(122, 240, 255, 0.55)";
+    ctx.fillRect(padding, y, fill, laneHeight);
+    ctx.fillStyle = "#9aa6c6";
+    ctx.font = "12px Manrope";
+    ctx.fillText(token, padding, y - 6);
+  });
+}
+
+function drawPrediction() {
+  const options = ["strategy", "plan", "clarity", "flow", "calm", "focus"];
+  const padding = 30;
+  const barWidth = canvas.width - padding * 2;
+
+  options.forEach((token, i) => {
+    const seed = state.seed + i * 13 + state.head * 9;
+    const score = 0.25 + rand(seed) * 0.7;
+    const y = padding + i * 50;
+    ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
+    ctx.fillRect(padding, y, barWidth, 28);
+    ctx.fillStyle = "rgba(255, 139, 209, 0.7)";
+    ctx.fillRect(padding, y, barWidth * score, 28);
+    ctx.fillStyle = "#eef1ff";
+    ctx.font = "13px Manrope";
+    ctx.fillText(token, padding + 8, y + 18);
+    ctx.fillStyle = "#9aa6c6";
+    ctx.fillText(`${Math.round(score * 100)}%`, padding + barWidth - 48, y + 18);
+  });
+}
+
+function renderScene() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "rgba(7, 9, 16, 0.9)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  if (state.activeScene === 0) drawTokens();
+  if (state.activeScene === 1) drawEmbeddings();
+  if (state.activeScene === 2) drawAttention();
+  if (state.activeScene === 3) drawResidual();
+  if (state.activeScene === 4) drawPrediction();
+}
+
+function updateTokens() {
+  state.tokens = tokenize(promptInput.value);
+  tokenCount.textContent = state.tokens.length.toString();
+  state.seed = hashString(promptInput.value);
+  renderScene();
+}
+
+function copyShareLink() {
+  const url = new URL(window.location.href);
+  url.searchParams.set("prompt", promptInput.value.trim());
+  navigator.clipboard.writeText(url.toString()).then(() => {
+    showToast("Link copied");
+  });
+}
+
+function loadFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const prompt = params.get("prompt");
+  if (prompt) promptInput.value = prompt;
+}
+
+const observer = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        const sceneIndex = Number(entry.target.dataset.scene);
+        state.activeScene = sceneIndex;
+        updateSceneInfo(sceneIndex);
+        document.querySelectorAll(".chapter").forEach((el) => {
+          el.classList.toggle("active", el === entry.target);
+        });
+        renderScene();
+      }
+    });
+  },
+  { threshold: 0.6 }
+);
+
+document.querySelectorAll(".chapter").forEach((chapter) => observer.observe(chapter));
+
+runPrompt.addEventListener("click", updateTokens);
+randomPrompt.addEventListener("click", () => {
+  promptInput.value = prompts[Math.floor(Math.random() * prompts.length)];
+  updateTokens();
+  showToast("Surprise prompt loaded");
+});
+
+headSelect.addEventListener("input", (event) => {
+  state.head = Number(event.target.value);
+  renderScene();
+});
+
+copyLink.addEventListener("click", copyShareLink);
+window.addEventListener("resize", () => {
+  resizeCanvas();
+  renderScene();
+});
+
+loadFromURL();
+resizeCanvas();
+updateTokens();
