@@ -63,7 +63,7 @@ I want a plan that feels smart, calm, and surprisingly simple.
         <div class="stage-card">
           <div class="stage-header">
             <div>
-              <span class="stage-label">Current Layer</span>
+          <span class="stage-label">Current Step</span>
               <h2 id="stageTitle">Tokenization</h2>
             </div>
             <div class="stage-pill" id="stageTag">Step 01</div>
@@ -77,48 +77,44 @@ I want a plan that feels smart, calm, and surprisingly simple.
       </aside>
 
       <section class="story">
-        <article class="chapter" data-scene="0">
-          <h3>Tokenization</h3>
-          <p>
-            The model cuts text into pieces: words, subwords, punctuation. The
-            sequence becomes a line of tokens that the rest of the network can
-            manipulate.
-          </p>
-        </article>
-        <article class="chapter" data-scene="1">
-          <h3>Embeddings</h3>
-          <p>
-            Each token is mapped to a dense vector. Nearby vectors represent
-            related meaning, giving the model a semantic canvas.
-          </p>
-        </article>
-        <article class="chapter" data-scene="2">
-          <h3>Self-Attention</h3>
-          <p>
-            Tokens look at other tokens and decide what matters most. Attention
-            weights are the model’s spotlight system.
-          </p>
-        </article>
-        <article class="chapter" data-scene="3">
-          <h3>Feed-Forward + Residual</h3>
-          <p>
-            A nonlinear mixing step refines each token. Residual connections
-            preserve the original signal and stabilize learning.
-          </p>
-        </article>
-        <article class="chapter" data-scene="4">
-          <h3>Prediction</h3>
-          <p>
-            The final vectors become probabilities for the next token. The model
-            samples a continuation based on those scores.
-          </p>
-        </article>
+        <div class="story-title">Choose a step</div>
+        <div class="scene-list">
+          <button class="scene-button active" data-scene="0">
+            <span class="scene-name">Tokenization</span>
+            <span class="scene-desc">
+              The model cuts text into pieces: words, subwords, punctuation.
+            </span>
+          </button>
+          <button class="scene-button" data-scene="1">
+            <span class="scene-name">Embeddings</span>
+            <span class="scene-desc">
+              Each token maps to a dense vector and semantic position.
+            </span>
+          </button>
+          <button class="scene-button" data-scene="2">
+            <span class="scene-name">Self-Attention</span>
+            <span class="scene-desc">
+              Tokens decide which other tokens matter most.
+            </span>
+          </button>
+          <button class="scene-button" data-scene="3">
+            <span class="scene-name">Feed-Forward + Residual</span>
+            <span class="scene-desc">
+              Nonlinear mixing plus residual stability.
+            </span>
+          </button>
+          <button class="scene-button" data-scene="4">
+            <span class="scene-name">Prediction</span>
+            <span class="scene-desc">
+              Final vectors become next-token probabilities.
+            </span>
+          </button>
+        </div>
       </section>
     </main>
 
     <footer class="footer">
-      <div>Built as a visual explainer, no backend required.</div>
-      <div>Scroll the story to animate the model.</div>
+      <div>Select a step to animate the model.</div>
     </footer>
 
     <div id="toast" class="toast hidden"></div>

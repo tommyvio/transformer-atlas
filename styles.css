@@ -203,7 +203,7 @@ canvas {
   width: 100%;
   border-radius: 16px;
   background: radial-gradient(circle at top, #121629 0%, #070812 70%);
-  max-height: 420px;
+  max-height: 320px;
 }
 
 .story {
@@ -211,35 +211,57 @@ canvas {
   gap: 24px;
 }
 
-.chapter {
-  background: rgba(11, 13, 23, 0.85);
-  border-radius: 16px;
-  padding: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+.story-title {
+  text-transform: uppercase;
+  letter-spacing: 0.24em;
+  font-size: 0.7rem;
   color: var(--muted);
-  transition: transform 0.3s ease, border 0.3s ease, color 0.3s ease;
 }
 
-.chapter.active {
+.scene-list {
+  display: grid;
+  gap: 14px;
+}
+
+.scene-button {
+  text-align: left;
+  background: rgba(11, 13, 23, 0.85);
+  border-radius: 16px;
+  padding: 16px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--muted);
+  display: grid;
+  gap: 8px;
+  cursor: pointer;
+  transition: transform 0.2s ease, border 0.2s ease, color 0.2s ease;
+}
+
+.scene-button:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.scene-button.active {
   color: var(--ink);
-  transform: translateY(-4px);
   border-color: rgba(122, 240, 255, 0.4);
   box-shadow: 0 16px 28px rgba(6, 8, 14, 0.6);
 }
 
-.chapter h3 {
-  margin-top: 0;
-  color: var(--ink);
+.scene-name {
   font-family: "Fraunces", serif;
+  font-size: 1.1rem;
+}
+
+.scene-desc {
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
 
 .footer {
   padding: 24px clamp(20px, 6vw, 80px) 50px;
   color: var(--muted);
   display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
+  justify-content: flex-start;
 }
 
 .toast {

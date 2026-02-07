@@ -265,24 +265,23 @@ function loadFromURL() {
   if (prompt) promptInput.value = prompt;
 }
 
-const observer = new IntersectionObserver(
-  (entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        const sceneIndex = Number(entry.target.dataset.scene);
-        state.activeScene = sceneIndex;
-        updateSceneInfo(sceneIndex);
-        document.querySelectorAll(".chapter").forEach((el) => {
-          el.classList.toggle("active", el === entry.target);
-        });
-        renderScene();
-      }
-    });
-  },
-  { threshold: 0.6 }
-);
+const sceneButtons = Array.from(document.querySelectorAll(".scene-button"));
 
-document.querySelectorAll(".chapter").forEach((chapter) => observer.observe(chapter));
+function setActiveScene(index) {
+  state.activeScene = index;
+  updateSceneInfo(index);
+  sceneButtons.forEach((button) => {
+    const isActive = Number(button.dataset.scene) === index;
+    button.classList.toggle("active", isActive);
+  });
+  renderScene();
+}
+
+sceneButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    setActiveScene(Number(button.dataset.scene));
+  });
+});
 
 runPrompt.addEventListener("click", updateTokens);
 randomPrompt.addEventListener("click", () => {
@@ -305,3 +304,4 @@ window.addEventListener("resize", () => {
 loadFromURL();
 resizeCanvas();
 updateTokens();
+setActiveScene(0);
