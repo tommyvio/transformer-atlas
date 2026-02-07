@@ -57,6 +57,8 @@ const state = {
   head: 0,
   seed: 0,
   manualSceneAt: 0,
+  width: 0,
+  height: 0,
 };
 
 function hashString(str) {
@@ -108,6 +110,8 @@ function updateSceneInfo(index) {
 function resizeCanvas() {
   const rect = canvas.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
+  state.width = rect.width;
+  state.height = rect.height;
   canvas.width = Math.floor(rect.width * dpr);
   canvas.height = Math.floor(rect.height * dpr);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -133,7 +137,7 @@ function drawTokens() {
     ctx.fillStyle = "#eef1ff";
     ctx.fillText(token, x + 10, y + 19);
     x += width + gap;
-    if (x + width > canvas.width - padding) {
+    if (x + width > state.width - padding) {
       x = padding;
       y += 40;
     }
@@ -142,30 +146,30 @@ function drawTokens() {
 
 function drawEmbeddings() {
   const tokens = state.tokens;
-  const padding = Math.min(26, canvas.height * 0.16);
-  const barWidth = Math.max(18, (canvas.width - padding * 2) / tokens.length - 10);
-  const maxHeight = canvas.height - padding * 2 - 40;
+  const padding = Math.min(26, state.height * 0.16);
+  const barWidth = Math.max(18, (state.width - padding * 2) / tokens.length - 10);
+  const maxHeight = state.height - padding * 2 - 40;
 
   tokens.forEach((token, i) => {
     const seed = state.seed + i * 31 + state.head * 7;
     const height = 60 + rand(seed) * maxHeight * 0.6;
     const x = padding + i * (barWidth + 10);
-    const y = canvas.height - padding - height;
+    const y = state.height - padding - height;
 
     ctx.fillStyle = "rgba(255, 139, 209, 0.6)";
     ctx.fillRect(x, y, barWidth, height);
     ctx.fillStyle = "#9aa6c6";
     ctx.font = "12px Manrope";
-    ctx.fillText(token, x, canvas.height - padding + 12);
+    ctx.fillText(token, x, state.height - padding + 12);
   });
 }
 
 function drawAttention() {
   const tokens = state.tokens;
-  const padding = Math.min(36, canvas.height * 0.18);
+  const padding = Math.min(36, state.height * 0.18);
   const yTop = padding + 6;
-  const yBottom = canvas.height - padding;
-  const gap = (canvas.width - padding * 2) / Math.max(tokens.length - 1, 1);
+  const yBottom = state.height - padding;
+  const gap = (state.width - padding * 2) / Math.max(tokens.length - 1, 1);
 
   tokens.forEach((token, i) => {
     const x = padding + i * gap;
@@ -203,8 +207,8 @@ function drawAttention() {
 
 function drawResidual() {
   const tokens = state.tokens;
-  const padding = Math.min(26, canvas.height * 0.16);
-  const available = canvas.height - padding * 2;
+  const padding = Math.min(26, state.height * 0.16);
+  const available = state.height - padding * 2;
   const laneHeight = Math.min(
     30,
     Math.max(20, (available - (tokens.length - 1) * 10) / tokens.length)
@@ -212,7 +216,7 @@ function drawResidual() {
 
   tokens.forEach((token, i) => {
     const y = padding + i * (laneHeight + 12);
-    const baseWidth = canvas.width - padding * 2;
+    const baseWidth = state.width - padding * 2;
     const seed = state.seed + i * 17 + state.head * 29;
     const fill = baseWidth * (0.4 + rand(seed) * 0.6);
 
@@ -228,9 +232,9 @@ function drawResidual() {
 
 function drawPrediction() {
   const options = getPredictionOptions();
-  const padding = Math.min(28, canvas.height * 0.14);
-  const barWidth = canvas.width - padding * 2;
-  const available = canvas.height - padding * 2;
+  const padding = Math.min(28, state.height * 0.14);
+  const barWidth = state.width - padding * 2;
+  const available = state.height - padding * 2;
   const barHeight = Math.min(26, Math.max(18, available / options.length - 10));
   const gap = Math.max(8, (available - options.length * barHeight) / Math.max(options.length - 1, 1));
 
@@ -291,9 +295,9 @@ function getPredictionOptions() {
 }
 
 function renderScene() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0, 0, state.width, state.height);
   ctx.fillStyle = "rgba(7, 9, 16, 0.9)";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillRect(0, 0, state.width, state.height);
 
   if (state.activeScene === 0) drawTokens();
   if (state.activeScene === 1) drawEmbeddings();
