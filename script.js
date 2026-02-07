@@ -56,6 +56,7 @@ const state = {
   activeScene: 0,
   head: 0,
   seed: 0,
+  manualSceneAt: 0,
 };
 
 function hashString(str) {
@@ -212,7 +213,7 @@ function drawResidual() {
 }
 
 function drawPrediction() {
-  const options = ["strategy", "plan", "clarity", "flow", "calm", "focus"];
+  const options = getPredictionOptions();
   const padding = 30;
   const barWidth = canvas.width - padding * 2;
 
@@ -230,6 +231,34 @@ function drawPrediction() {
     ctx.fillStyle = "#9aa6c6";
     ctx.fillText(`${Math.round(score * 100)}%`, padding + barWidth - 48, y + 18);
   });
+}
+
+function getPredictionOptions() {
+  const base = [
+    "strategy",
+    "plan",
+    "clarity",
+    "flow",
+    "calm",
+    "focus",
+    "signal",
+    "context",
+    "insight",
+    "pattern",
+    "direction",
+    "tradeoff",
+  ];
+  const tokens = state.tokens
+    .map((token) => token.toLowerCase())
+    .filter((token) => /^[a-z]/.test(token) && token.length > 2);
+  const pool = Array.from(new Set([...tokens, ...base]));
+  const randLocal = mulberry32(hashString(`${promptInput.value}:${state.head}`));
+  const chosen = [];
+  while (chosen.length < 6 && pool.length) {
+    const index = Math.floor(randLocal() * pool.length);
+    chosen.push(pool.splice(index, 1)[0]);
+  }
+  return chosen;
 }
 
 function renderScene() {
@@ -269,9 +298,14 @@ const chapters = Array.from(document.querySelectorAll(".chapter"));
 
 function setActiveScene(sceneIndex) {
   state.activeScene = sceneIndex;
+  state.manualSceneAt = Date.now();
   updateSceneInfo(sceneIndex);
   chapters.forEach((el) => {
     el.classList.toggle("active", Number(el.dataset.scene) === sceneIndex);
+    el.setAttribute(
+      "aria-pressed",
+      Number(el.dataset.scene) === sceneIndex ? "true" : "false"
+    );
   });
   renderScene();
 }
@@ -280,6 +314,7 @@ const observer = new IntersectionObserver(
   (entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
+        if (Date.now() - state.manualSceneAt < 900) return;
         setActiveScene(Number(entry.target.dataset.scene));
       }
     });
@@ -291,6 +326,12 @@ chapters.forEach((chapter) => {
   observer.observe(chapter);
   chapter.addEventListener("click", () => {
     setActiveScene(Number(chapter.dataset.scene));
+  });
+  chapter.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      setActiveScene(Number(chapter.dataset.scene));
+    }
   });
 });
 
