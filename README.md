@@ -12,6 +12,8 @@ Live site: https://tommyvio.github.io/transformer-atlas/
 - Feed-forward + residual
 - Next-token prediction
 
+> **Note**: This is a conceptual visualization designed to build intuition. It simulates the architectural steps using randomized data for demonstration; it does not run actual model inference.
+
 ## Run
 
 Open `index.html` in a browser.
