@@ -75,6 +75,15 @@ function rand(seed) {
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 }
 
+function mulberry32(seed) {
+  return function () {
+    let t = (seed += 0x6d2b79f5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
 function tokenize(text) {
   return text
     .trim()
@@ -133,9 +142,9 @@ function drawTokens() {
 
 function drawEmbeddings() {
   const tokens = state.tokens;
-  const padding = 24;
+  const padding = Math.min(26, canvas.height * 0.16);
   const barWidth = Math.max(18, (canvas.width - padding * 2) / tokens.length - 10);
-  const maxHeight = canvas.height - 80;
+  const maxHeight = canvas.height - padding * 2 - 40;
 
   tokens.forEach((token, i) => {
     const seed = state.seed + i * 31 + state.head * 7;
@@ -153,8 +162,8 @@ function drawEmbeddings() {
 
 function drawAttention() {
   const tokens = state.tokens;
-  const padding = 40;
-  const yTop = padding + 10;
+  const padding = Math.min(36, canvas.height * 0.18);
+  const yTop = padding + 6;
   const yBottom = canvas.height - padding;
   const gap = (canvas.width - padding * 2) / Math.max(tokens.length - 1, 1);
 
@@ -166,7 +175,8 @@ function drawAttention() {
     ctx.fill();
     ctx.fillStyle = "#9aa6c6";
     ctx.font = "12px Manrope";
-    ctx.fillText(token, x - 10, yTop - 16);
+    const labelY = Math.max(16, yTop - 14);
+    ctx.fillText(token, x - 10, labelY);
 
     ctx.fillStyle = "#7af0ff";
     ctx.beginPath();
@@ -193,8 +203,12 @@ function drawAttention() {
 
 function drawResidual() {
   const tokens = state.tokens;
-  const padding = 24;
-  const laneHeight = 36;
+  const padding = Math.min(26, canvas.height * 0.16);
+  const available = canvas.height - padding * 2;
+  const laneHeight = Math.min(
+    30,
+    Math.max(20, (available - (tokens.length - 1) * 10) / tokens.length)
+  );
 
   tokens.forEach((token, i) => {
     const y = padding + i * (laneHeight + 12);
@@ -214,22 +228,29 @@ function drawResidual() {
 
 function drawPrediction() {
   const options = getPredictionOptions();
-  const padding = 30;
+  const padding = Math.min(28, canvas.height * 0.14);
   const barWidth = canvas.width - padding * 2;
+  const available = canvas.height - padding * 2;
+  const barHeight = Math.min(26, Math.max(18, available / options.length - 10));
+  const gap = Math.max(8, (available - options.length * barHeight) / Math.max(options.length - 1, 1));
 
   options.forEach((token, i) => {
     const seed = state.seed + i * 13 + state.head * 9;
     const score = 0.25 + rand(seed) * 0.7;
-    const y = padding + i * 50;
+    const y = padding + i * (barHeight + gap);
     ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
-    ctx.fillRect(padding, y, barWidth, 28);
+    ctx.fillRect(padding, y, barWidth, barHeight);
     ctx.fillStyle = "rgba(255, 139, 209, 0.7)";
-    ctx.fillRect(padding, y, barWidth * score, 28);
+    ctx.fillRect(padding, y, barWidth * score, barHeight);
     ctx.fillStyle = "#eef1ff";
     ctx.font = "13px Manrope";
-    ctx.fillText(token, padding + 8, y + 18);
+    ctx.fillText(token, padding + 8, y + barHeight - 8);
     ctx.fillStyle = "#9aa6c6";
-    ctx.fillText(`${Math.round(score * 100)}%`, padding + barWidth - 48, y + 18);
+    ctx.fillText(
+      `${Math.round(score * 100)}%`,
+      padding + barWidth - 48,
+      y + barHeight - 8
+    );
   });
 }
 
@@ -254,11 +275,19 @@ function getPredictionOptions() {
   const pool = Array.from(new Set([...tokens, ...base]));
   const randLocal = mulberry32(hashString(`${promptInput.value}:${state.head}`));
   const chosen = [];
+
+  tokens.forEach((token) => {
+    if (chosen.length < 3 && !chosen.includes(token)) {
+      chosen.push(token);
+    }
+  });
+
   while (chosen.length < 6 && pool.length) {
     const index = Math.floor(randLocal() * pool.length);
-    chosen.push(pool.splice(index, 1)[0]);
+    const token = pool.splice(index, 1)[0];
+    if (!chosen.includes(token)) chosen.push(token);
   }
-  return chosen;
+  return chosen.slice(0, 6);
 }
 
 function renderScene() {
@@ -326,6 +355,7 @@ chapters.forEach((chapter) => {
   observer.observe(chapter);
   chapter.addEventListener("click", () => {
     setActiveScene(Number(chapter.dataset.scene));
+    chapter.scrollIntoView({ behavior: "smooth", block: "center" });
   });
   chapter.addEventListener("keydown", (event) => {
     if (event.key === "Enter" || event.key === " ") {
